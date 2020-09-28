@@ -27,7 +27,8 @@ class Patient:
         :param disease:
         :return:
         """
-        self.diseases.append(disease)
+        if disease not in self.diseases:
+            self.diseases.append(disease)
 
     def cure_disease(self, disease: Diseases = None):
         """
@@ -35,7 +36,7 @@ class Patient:
         :param disease:
         :return:
         """
-        if disease and disease in self.diseases:
+        if disease in self.diseases:
             del(self.diseases[self.diseases.index(disease)])
 
 
@@ -73,6 +74,9 @@ class Calendar:
         if self.exams:
             return self.exams.popleft().patient
 
+    def save(self, path):
+        with open(path, 'w') as file:
+            file.writelines([f'{exam.date} - {exam.patient.name}\n' for exam in self.exams])
 
 class Doctor:
     """
@@ -121,8 +125,13 @@ class Doctor:
 if __name__ == '__main__':
     illness1 = Diseases('przeziebienie')
     illness2 = Diseases('gorączka')
+    illness3 = Diseases('Coronavirus')
 
     patient1 = Patient('Romek Rybak', 55, [illness1, illness2])
+    patient2 = Patient('Adam Malysz', 55, [illness1, illness2])
+    patient3 = Patient('Zbigniew Ziobro', 55, [illness1, illness2, illness3])
+    patient4 = Patient('Lukasz Szumowski', 55, [illness3])
+    patient5 = Patient('Kot Jarka', 55, [illness3])
 
     print(patient1.diseases)
     patient1.cure_disease(illness1)
@@ -134,6 +143,12 @@ if __name__ == '__main__':
 
     doctor1 = Doctor('doktor nibyjaki', Calendar())
     doctor1.register_to_doctor(patient1, datetime(2020, 11, 23, 7, 43, 00, 00))
+    doctor1.register_to_doctor(patient2, datetime(2020, 11, 24, 7, 43, 00, 00))
+    doctor1.register_to_doctor(patient3, datetime(2020, 11, 25, 7, 43, 00, 00))
+    doctor1.register_to_doctor(patient4, datetime(2020, 11, 26, 7, 43, 00, 00))
+    doctor1.register_to_doctor(patient5, datetime(2020, 11, 27, 7, 43, 00, 00))
     # doctor1.examination_of_patient()
     print(patient1.diseases)
     doctor1.print_calendar()
+    doctor1.calendar.save('doctor1-cal.txt')
+
