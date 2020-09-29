@@ -76,7 +76,12 @@ class Calendar:
 
     def save(self, path):
         with open(path, 'w') as file:
-            file.writelines([f'{exam.date} - {exam.patient.name}\n' for exam in self.exams])
+            file.writelines([
+                f'{exam.date}, '
+                f'{exam.patient.name}, '
+                f'{[disease.name for disease in exam.patient.diseases]}\n'
+                for exam in self.exams]
+            )
 
 class Doctor:
     """
