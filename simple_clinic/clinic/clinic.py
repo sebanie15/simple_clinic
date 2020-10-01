@@ -1,21 +1,20 @@
-"""Main module."""
+# !/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+@author: sebanie15
+"""
 from typing import List
 from collections import deque
 from datetime import datetime, date
 from dataclasses import dataclass
 from random import randint, randrange
-
+from disease import Diseases
+from patient import Patient
 
 class Pesel:
     SEX = {'male', 'female'}
     ODD_MONTHS = (1, 3, 5, 7, 8, 10, 12, 21, 23, 25, 27, 28, 30, 32)
     EVEN_MONTHS = (4, 6, 9, 11, 24, 26, 29, 31)
-
-    """
-    pesel[0:5] -> data
-    pesel[6:9] -> płeć
-    pesel[10]  -> suma kontrolna
-    """
 
     def code_sex(self, sex):
         """
@@ -36,30 +35,23 @@ class Pesel:
             pass
         # TODO: co jeśli jest podana inna płeć
 
-        return f'{randint(0, 10)}{randint(0, 10)}{randint(0, 10)}{randrange(start, stop, 2)}'
+        g = randint(0, 10)
+        h = randint(0, 10)
+        i = randint(0, 10)
+        j = randrange(start, stop, 2)
+
+        code = str(g) + str(h) + str(i) + str(j)
+        return code
 
     def decode_sex(self, pesel: str) -> SEX:
+
         if int(pesel[-2]) % 2 == 0:
             return 'female'
-        return 'male'
+        else:
+            return 'male'
 
     def decode_date(self, pesel: str) -> date:
-        if len(pesel) == 10:
-            date_pesel = pesel[0:6]
-        elif len(pesel) == 12:
-            date_pesel = pesel[2:8]
-        else:
-            print('Nieprawidłowy numer pesel')
-            return date(1900, 1, 1)
-
-
-@dataclass
-class Diseases:
-    """
-    klasa choroby
-    """
-    name: str
-    description: str = ''
+        pass
 
 
 class Specialization:
@@ -71,55 +63,6 @@ class Specialization:
         self.name = name
         self.description = description
         self.diseases = []
-
-
-class Patient:
-    """
-    klasa Patient
-    """
-
-    def __init__(self, pesel, first_name, last_name, age, born, sex):
-        self.pesel = pesel
-        self.first_name = first_name
-        self.last_name = last_name
-        self.age = age
-        self.born = born
-        self.sex = sex
-        self.__diseases = []
-
-    """
-    def __init__(self, clinic, name, age, illness: List[Diseases]):
-        self.clinic = clinic
-        self.name = name
-        self.age = age
-        self.diseases = deque([disease for disease in illness])
-    """
-
-    @property
-    def name(self):
-        return f'{self.first_name} {self.last_name}'
-
-    @property
-    def diseases(self):
-        return self.__diseases
-
-    def add_disease(self, disease: Diseases):
-        """
-        dodanie choroby pacjentowi
-        :param disease:
-        :return:
-        """
-        if disease not in self.__diseases:
-            self.__diseases.append(disease)
-
-    def cure_disease(self, disease: Diseases = None):
-        """
-        wyleczenie choroby i usuniecie jej z listy chorób
-        :param disease:
-        :return:
-        """
-        if disease in self.__diseases:
-            del (self.__diseases[self.__diseases.index(disease)])
 
 
 class Examination:
@@ -292,47 +235,3 @@ class SimpleCLinic:
     def add_doctor(self):
         self.doctors.append(Doctor('Doktor', 'Nibyjaki', Calendar()))
 
-
-if __name__ == '__main__':
-    illness1 = Diseases('przeziebienie')
-    illness2 = Diseases('gorączka')
-    illness3 = Diseases('Coronavirus')
-
-    patient1 = Patient(pesel='80042313865',
-                       first_name='Romek',
-                       last_name='Rybak',
-                       age=55,
-                       born=date(1980, 4, 23),
-                       sex='male'
-                       )
-    patient2 = Patient(pesel='75062434234',
-                       first_name='Adam',
-                       last_name='Malysz',
-                       age=55,
-                       born=date(1975, 6, 24),
-                       sex='male')
-    patient3 = Patient(pesel='75062434234',
-                       first_name='Zbigniew',
-                       last_name='Ziobro',
-                       age=55,
-                       born=date(1975, 6, 24),
-                       sex='female')
-
-    patient1.add_disease(illness2)
-    # print(patient1.diseases)
-    # patient1.cure_disease(illness1)
-    print(patient1.diseases)
-
-    # illness3 = Diseases('groźna choroba')
-    patient1.add_disease(illness3)
-    print(patient1.diseases)
-
-    doctor1 = Doctor('doktor', 'nibyjaki', Calendar())
-    doctor1.register_to_doctor(patient1, datetime(2020, 11, 23, 7, 43, 00, 00))
-    doctor1.register_to_doctor(patient2, datetime(2020, 11, 24, 7, 43, 00, 00))
-    doctor1.register_to_doctor(patient3, datetime(2020, 11, 25, 7, 43, 00, 00))
-
-    # doctor1.examination_of_patient()
-    print(patient1.diseases)
-    doctor1.print_calendar()
-    doctor1.calendar.save('doctor1-cal.txt')

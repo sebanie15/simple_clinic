@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/../sda-szkolenie/.idea/sda-szkolenie.iml" filepath="$PROJECT_DIR$/../sda-szkolenie/.idea/sda-szkolenie.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/simple_clinic.iml" filepath="$PROJECT_DIR$/.idea/simple_clinic.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../simple_racing/.idea/simple_racing.iml" filepath="$PROJECT_DIR$/../simple_racing/.idea/simple_racing.iml" />
     </modules>
   </component>
 </project>
