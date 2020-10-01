@@ -2,6 +2,7 @@
 from typing import List
 from collections import deque
 from datetime import datetime
+from dataclasses import dataclass
 
 
 class Diseases:
@@ -12,14 +13,31 @@ class Diseases:
         self.name = name
 
 
+@dataclass
 class Patient:
     """
     klasa Patient
     """
-    def __init__(self, name, age, illness: List[Diseases]):
+    pesel: str
+    first_name: str
+    last_name: str
+    age: int
+    __diseases: List[Diseases]
+    """
+    def __init__(self, pesel, name, age, illness: List[Diseases]):
+        self.pesel = pesel
         self.name = name
         self.age = age
         self.diseases = deque([disease for disease in illness])
+    """
+
+    @property
+    def name(self):
+        return f'{self.first_name} {self.last_name}'
+
+    @property
+    def diseases(self):
+        return deque(self.__diseases)
 
     def add_disease(self, disease: Diseases):
         """
@@ -28,7 +46,7 @@ class Patient:
         :return:
         """
         if disease not in self.diseases:
-            self.diseases.append(disease)
+            self.__diseases.append(disease)
 
     def cure_disease(self, disease: Diseases = None):
         """
@@ -36,14 +54,16 @@ class Patient:
         :param disease:
         :return:
         """
-        if disease in self.diseases:
-            del(self.diseases[self.diseases.index(disease)])
+        if disease in self.__diseases:
+            del(self.__diseases[self.__diseases.index(disease)])
 
 
 class Examination:
     """
     klasa badania lekarskiego
     """
+    exam_time = 30  # długość wizyty -> 30 min
+
     def __init__(self, date: datetime, patient: Patient):
         self.date = date
         self.patient = patient
@@ -61,15 +81,24 @@ class Calendar:
         dodawanie badanie lekarskiego
         :param examination:
         :return:
+        >>> 1 # dodanie wizyty do kalendarza
+
+        >>> 0  # wizyta nie zostałą dodana
         """
-        if examination:
+        for exam in self.exams:
+            if examination.date == exam.date:
+                break
+        else:
             self.exams.append(examination)
+            return 1
+        return 0
 
     @property
     def patient_to_examination(self) -> Patient:
         """
         pobranie danych pacjenta do badania, usunięcie badania z kalendarza
         :return:
+        >>> Patient()
         """
         if self.exams:
             return self.exams.popleft().patient
@@ -83,25 +112,73 @@ class Calendar:
                 for exam in self.exams]
             )
 
+
+@dataclass
+class Specialization:
+    id: int
+    name: str
+    description: str
+    diseases: List[Diseases]
+
+
 class Doctor:
     """
     klasa Doctor
     """
-    def __init__(self, name, calendar: Calendar):
-        self.name = name
+    def __init__(self, first_name, last_name, specialization: Specialization = None, calendar: Calendar = None):
+        """
+        Inicjalizacja danych dla lekarza
+        :param first_name: imię
+        :param last_name: nazwisko
+        :param specialization: specjalizacja
+        :param calendar:
+        """
+        self.first_name = first_name
+        self.last_name = last_name
+        self.specialization = specialization
         self.patients = deque([])
         self.calendar = calendar
 
-    def register_to_doctor(self, patient: Patient, date_of_examination: datetime):
+    @property
+    def name(self) -> str:
+        """
+        funkcja zwraca imię i nazwisko lekarza
+        :return:
+        """
+        return f'{self.first_name} {self.last_name}'
+
+    def add_patient(self, patient: Patient) -> int:
+        """
+        dodanie pacjenta do listy pacjentów jeśli go nie ma na liście
+        :param patient:
+        :return:
+        >>> 1 # dodanie nowego pacjenta
+
+        >>> 0 # pacjent jest już na liście
+        """
+        if patient not in self.patients:
+            self.patients.append(patient)
+            return 1
+        return 0
+
+    def register_to_doctor(self, patient: Patient, date_of_examination: datetime) -> int:
         """
         rejestracja pacjenta do doctora w okreslonym terminie
         :param patient:
         :param date_of_examination:
         :return:
+        >>> 1 # dodanie wizyty powiodło się
+
+        >>> 0 # wizyta nie została dodana
         """
-        if patient not in self.patients:
-            self.patients.append(patient)
-        self.calendar.add_examination(Examination(date_of_examination, patient))
+        if self.add_patient(patient):
+            print('Pacjent został dodany do bazy')
+        if self.calendar.add_examination(Examination(date_of_examination, patient)):
+            print('Dodanie wizyty przebiegło pomyślnie')
+            return 1
+        else:
+            print('Wizyta nie została dodana do kalendarza, termin jest już zajęty')
+            return 0
 
     def examination_of_patient(self):
         """
@@ -127,16 +204,39 @@ class Doctor:
             print(f'Data: {entry.date}, pacjent {entry.patient.name}')
 
 
+class SimpleCLinic:
+
+    def __init__(self, name):
+        self.name = name
+        self.doctors = List[Doctor]
+        self.patients = List[Patient]
+
+    def load(self):
+        pass
+
+    def save(self):
+        pass
+
+    def use_doctor(self):
+        pass
+
+    def add_patient(self):
+        pass
+
+    def add_doctor(self):
+        self.doctors.append(Doctor('Doktor Nibyjaki', Calendar()))
+
+
 if __name__ == '__main__':
     illness1 = Diseases('przeziebienie')
     illness2 = Diseases('gorączka')
     illness3 = Diseases('Coronavirus')
 
-    patient1 = Patient('Romek Rybak', 55, [illness1, illness2])
-    patient2 = Patient('Adam Malysz', 55, [illness1, illness2])
-    patient3 = Patient('Zbigniew Ziobro', 55, [illness1, illness2, illness3])
-    patient4 = Patient('Lukasz Szumowski', 55, [illness3])
-    patient5 = Patient('Kot Jarka', 55, [illness3])
+    patient1 = Patient('80042313865', 'Romek', 'Rybak', 55, [illness1, illness2])
+    patient2 = Patient('75062434234', 'Adam', 'Malysz', 55, [illness1, illness2])
+    patient3 = Patient('75062434234', 'Zbigniew', 'Ziobro', 55, [illness1, illness2, illness3])
+    patient4 = Patient('75062434234', 'Lukasz', 'Szumowski', 55, [illness3])
+    patient5 = Patient('75062434234', 'Kot', 'Jarka', 55, [illness3])
 
     print(patient1.diseases)
     patient1.cure_disease(illness1)
@@ -156,4 +256,3 @@ if __name__ == '__main__':
     print(patient1.diseases)
     doctor1.print_calendar()
     doctor1.calendar.save('doctor1-cal.txt')
-
