@@ -71,7 +71,7 @@ class Pesel:
         result += '0' + str(month) if month < 10 else str(month)
         result += '0' + str(day) if day < 10 else str(day)
         result += self._code_sex(sex)
-        result += self.checksum(result)
+        result += str(self.checksum(result))
 
         self.value = result
         return result
@@ -454,10 +454,10 @@ if __name__ == '__main__':
     doctor1.calendar.save('doctor1-cal.txt')
 
     pesel1 = Pesel()
-    pesel1.code_pesel(date(1980, 5, 21), sex='male')
+    pesel1.generate_pesel(date(1980, 5, 21), sex='male')
 
     print(pesel1.value)
 
-    pesel2 = Pesel().code_pesel(date(1980, 5, 21), 'male')
-    print(pesel2.value)
+    pesel2 = Pesel().generate_pesel(date(1980, 5, 21), 'male')
+    print(pesel2)
     print(Pesel().decode_date('80052114719'))
