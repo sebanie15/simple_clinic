@@ -21,7 +21,7 @@ class Pesel:
     """
 
     @staticmethod
-    def check_sum(pesel_number: str) -> int:
+    def checksum(pesel_number: str) -> int:
         """
         funkcja liczy sumę kntrolną numeru pesel
         :param pesel_number:
@@ -33,19 +33,48 @@ class Pesel:
         for idx, digit in enumerate(digits[:-1]):
             suma += (digit * check_table[idx]) % 10
 
-        check_sum = 10 - (suma % 10)
-        return check_sum
+        checksum = 10 - (suma % 10)
+        return checksum
 
-    def is_valid(self, pesel):
-
-        if self.check_sum(pesel) == int(pesel[-1]) % 10:
+    def is_valid(self, pesel_number):
+        """
+        sprawdzenie poprawności numeru PESEL
+        :param pesel_number:
+        :return:
+        """
+        if self.checksum(pesel_number) == int(pesel_number[-1]) % 10:
             return True
         else:
             return False
 
-    def code_pesel(self, born: date, sex: SEX):
-        self.value = 'return blank pesel'
-        return Pesel('return blank pesel')
+    def generate_pesel(self, born: date, sex: SEX) -> str:
+        """
+        funkcja generuje stringa z numerem PESEL
+        wygenerowany numer PESEL przypisuje do self.value
+        :param born:
+        :param sex:
+        :return:
+        """
+        day = born.day
+        month = born.month
+        year = born.year
+        if 1999 <= year >= 1900:
+            month = month
+        elif 2099 <= year >= 2000:
+            month += 20
+        elif 2199 <= year >= 2100:
+            month += 40
+        elif 2299 <= year >= 2200:
+            month += 60
+
+        result = str(year)[3:-1]
+        result += '0' + str(month) if month < 10 else str(month)
+        result += '0' + str(day) if day < 10 else str(day)
+        result += self._code_sex(sex)
+        result += self.checksum(result)
+
+        self.value = result
+        return result
 
     def _code_sex(self, sex):
         """
@@ -123,6 +152,10 @@ class Specialization:
 
     @property
     def diseases(self) -> deque:
+        """
+        property z listą chorób
+        :return:
+        """
         return deque(self._diseases)
 
     def add_disease(self, disease: Diseases):
