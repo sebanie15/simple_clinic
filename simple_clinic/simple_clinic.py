@@ -119,7 +119,11 @@ class Specialization:
         self.id = self.count
         self.name = name
         self.description = description
-        self.diseases = []
+        self._diseases = []
+
+    @property
+    def diseases(self) -> deque:
+        return deque(self._diseases)
 
     def add_disease(self, disease: Diseases):
         """
@@ -127,8 +131,8 @@ class Specialization:
         :param disease:
         :return:
         """
-        if disease not in self.diseases:
-            self.diseases.append(disease)
+        if disease not in self._diseases:
+            self._diseases.append(disease)
             return 1
         return 0
 
