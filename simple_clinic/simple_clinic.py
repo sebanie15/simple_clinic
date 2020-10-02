@@ -1,5 +1,5 @@
 """Main module."""
-from typing import List
+from typing import List, Tuple
 from collections import deque
 from datetime import datetime, date
 from dataclasses import dataclass
@@ -11,18 +11,49 @@ class Pesel:
     ODD_MONTHS = (1, 3, 5, 7, 8, 10, 12, 21, 23, 25, 27, 28, 30, 32)
     EVEN_MONTHS = (4, 6, 9, 11, 24, 26, 29, 31)
 
+    def __init__(self, value: str = ''):
+        self.value = value
+
     """
     pesel[0:5] -> data
     pesel[6:9] -> płeć
     pesel[10]  -> suma kontrolna
     """
 
-    def code_sex(self, sex):
+    @staticmethod
+    def check_sum(pesel_number: str) -> int:
         """
-           g, h, i, j – oznaczenie płci (jeśli cała ta 4-cyfrowa liczba, a w praktyce ostatnia z nich, czyli j, jest parzysta
-                       - jest to PESEL kobiety, jeśli jest nieparzysta - jest to PESEL mężczyzny)
-           (0, 2, 4, 6, 8 – oznaczają płeć żeńską,
-           1, 3, 5, 7, 9 – płeć męską)
+        funkcja liczy sumę kntrolną numeru pesel
+        :param pesel_number:
+        :return:
+        """
+        check_table = [1, 3, 7, 9, 1, 3, 7, 9, 1, 3]
+        digits = [int(digit) for digit in pesel_number]
+        suma = 0
+        for idx, digit in enumerate(digits[:-1]):
+            suma += (digit * check_table[idx]) % 10
+
+        check_sum = 10 - (suma % 10)
+        return check_sum
+
+    def is_valid(self, pesel):
+
+        if self.check_sum(pesel) == int(pesel[-1]) % 10:
+            return True
+        else:
+            return False
+
+    def code_pesel(self, born: date, sex: SEX):
+        self.value = 'return blank pesel'
+        return Pesel('return blank pesel')
+
+    def _code_sex(self, sex):
+        """
+           g, h, i, j – oznaczenie płci (jeśli cała ta 4-cyfrowa liczba, a w praktyce ostatnia z nich, czyli j,
+                    - j jest parzysta - jest to PESEL kobiety,
+                    - j jest nieparzysta - jest to PESEL mężczyzny)
+                    (0, 2, 4, 6, 8) – oznaczają płeć żeńską,
+                    (1, 3, 5, 7, 9) – płeć męską
            """
         start = stop = 0
 
@@ -38,19 +69,34 @@ class Pesel:
 
         return f'{randint(0, 10)}{randint(0, 10)}{randint(0, 10)}{randrange(start, stop, 2)}'
 
-    def decode_sex(self, pesel: str) -> SEX:
-        if int(pesel[-2]) % 2 == 0:
+    def decode_sex(self, pesel_number: str) -> SEX:
+        """
+        funkcja odczytuje płeć z numeru PESEL
+        :param pesel_number:
+        :return:
+        """
+        if not self.is_valid(pesel_number):
+            print('Nieprawidłowy numer PESEL!!!')
+            return 'male'
+
+        if int(pesel_number[-2]) % 2 == 0:
             return 'female'
         return 'male'
 
-    def decode_date(self, pesel: str) -> date:
-        if len(pesel) == 10:
-            date_pesel = pesel[0:6]
-        elif len(pesel) == 12:
-            date_pesel = pesel[2:8]
-        else:
+    def decode_date(self, pesel_number: str) -> date:
+        """
+        funkcja odczytuję datę urodzenia z numeru PESEL
+        :param pesel_number:
+        :return:
+        """
+        if not self.is_valid(pesel_number):
             print('Nieprawidłowy numer pesel')
             return date(1900, 1, 1)
+
+        if int(pesel_number[2:4]) > 20:
+            return date(int(f'20{pesel_number[0:2]}'), int(pesel_number[2:4]) - 20, int(pesel_number[4:6]))
+        else:
+            return date(int(f'19{pesel_number[0:2]}'), int(pesel_number[2:4]), int(pesel_number[4:6]))
 
 
 @dataclass
@@ -63,6 +109,9 @@ class Diseases:
 
 
 class Specialization:
+    """
+    klasa specjalizacji lekarskiej
+    """
     count = 0
 
     def __init__(self, name, description: str = ''):
@@ -72,6 +121,17 @@ class Specialization:
         self.description = description
         self.diseases = []
 
+    def add_disease(self, disease: Diseases):
+        """
+        dodawanie choroby do listy chorób za które odpowiada specjalizacja
+        :param disease:
+        :return:
+        """
+        if disease not in self.diseases:
+            self.diseases.append(disease)
+            return 1
+        return 0
+
 
 class Patient:
     """
@@ -79,21 +139,38 @@ class Patient:
     """
 
     def __init__(self, pesel, first_name, last_name, age, born, sex):
-        self.pesel = pesel
-        self.first_name = first_name
-        self.last_name = last_name
-        self.age = age
-        self.born = born
-        self.sex = sex
-        self.__diseases = []
-
-    """
-    def __init__(self, clinic, name, age, illness: List[Diseases]):
-        self.clinic = clinic
-        self.name = name
-        self.age = age
-        self.diseases = deque([disease for disease in illness])
-    """
+        if Pesel().is_valid(pesel):
+            self.pesel = pesel
+            self.first_name = first_name
+            self.last_name = last_name
+            if Pesel().decode_date(self.pesel) == born:
+                self.age = age
+                self.born = born
+            else:
+                print(f'Błędne dane wejściowe: data urodzenia nie zgadza się z datą w nr PESEL!!!')
+                # TODO: co teraz zrobić?
+            if Pesel().decode_sex(self.pesel) == sex:
+                self.sex = sex
+            else:
+                print(f'Błędne dane wejściowe: płeć nie zgadza się z płcią w nr PESEL!!!')
+                # TODO: co teraz zrobić
+            self.__diseases = []
+        else:
+            self.pesel = '00000000000'
+            self.first_name = ''
+            self.last_name = ''
+            if Pesel().decode_date(self.pesel) == born:
+                self.age = age
+                self.born = born
+            else:
+                print(f'Błędne dane wejściowe: data urodzenia nie zgadza się z datą w nr PESEL!!!')
+                # TODO: co teraz zrobić?
+            if Pesel().decode_sex(self.pesel) == sex:
+                self.sex = sex
+            else:
+                print(f'Błędne dane wejściowe: płeć nie zgadza się z płcią w nr PESEL!!!')
+                # TODO: co teraz zrobić
+            self.__diseases = []
 
     @property
     def name(self):
@@ -128,8 +205,8 @@ class Examination:
     """
     exam_time = 30  # długość wizyty -> 30 min
 
-    def __init__(self, date: datetime, patient: Patient):
-        self.date = date
+    def __init__(self, date_of_axamination: datetime, patient: Patient):
+        self.date_of_examination = date_of_axamination
         self.patient = patient
 
 
@@ -155,7 +232,7 @@ class Calendar:
         >>> 0  # wizyta nie zostałą dodana
         """
         for exam in self.__exams:
-            if examination.date == exam.date:
+            if examination.date_of_examination == exam.date_of_examination:
                 break
         else:
             self.__exams.append(examination)
@@ -175,7 +252,7 @@ class Calendar:
     def save(self, path):
         with open(path, 'w') as file:
             file.writelines([
-                f'{exam.date}, '
+                f'{exam.date_of_examination}, '
                 f'{exam.patient.name}, '
                 f'{[disease.name for disease in exam.patient.diseases]}\n'
                 for exam in self.exams]
@@ -242,14 +319,16 @@ class Doctor:
             print('Wizyta nie została dodana do kalendarza, termin jest już zajęty')
             return 0
 
-    def examination_of_patient(self):
+    def examination_of_patient(self) -> Tuple[Patient, Diseases]:
         """
         badanie pacjenta, jesli pacjent jest wyleczony ze wszystkich chorób usunięcie pacjenta
         z listy pacjentów
         :return:
+        >>> (Patient(), Diseases())
         """
         patient = self.calendar.patient_to_examination
-        illness = patient.diseases.popleft()
+        illness = patient.diseases[0]
+        del(patient.diseases[0])
         if not patient.diseases:
             del (self.patients[self.patients.index(patient)])
 
@@ -263,7 +342,7 @@ class Doctor:
         print(f'Kalendarz doktora: {self.name}')
         print('-' * 50)
         for entry in self.calendar.exams:
-            print(f'Data: {entry.date}, pacjent {entry.patient.name}')
+            print(f'Data: {entry.date_of_examination}, pacjent {entry.patient.name}')
 
     def save(self, path):
         with open(path, 'w') as file:
@@ -336,3 +415,12 @@ if __name__ == '__main__':
     print(patient1.diseases)
     doctor1.print_calendar()
     doctor1.calendar.save('doctor1-cal.txt')
+
+    pesel1 = Pesel()
+    pesel1.code_pesel(date(1980, 5, 21), sex='male')
+
+    print(pesel1.value)
+
+    pesel2 = Pesel().code_pesel(date(1980, 5, 21), 'male')
+    print(pesel2.value)
+    print(Pesel().decode_date('80052114719'))

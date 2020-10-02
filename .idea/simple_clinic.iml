@@ -10,5 +10,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="simple_racing" />
     <orderEntry type="module" module-name="sda-szkolenie" />
+    <orderEntry type="module" module-name="sda-szkolenie" />
   </component>
 </module>
