@@ -67,7 +67,7 @@ class Pesel:
         elif 2299 <= year >= 2200:
             month += 60
 
-        result = str(year)[3:-1]
+        result = str(year)[2:]
         result += '0' + str(month) if month < 10 else str(month)
         result += '0' + str(day) if day < 10 else str(day)
         result += self._code_sex(sex)
